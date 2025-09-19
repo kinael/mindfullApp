@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>MindfullApp - Início</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/mobile.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+<script>
+(async () => {
+  try {
+    const s = await sbGetSession();
+    if (!s) window.location.href = 'index.html';
+  } catch(e){  }
+})();
+</script>
+  <div class="app-shell">
+    <div class="app-notch"></div>
+    <div class="app-scroll bg-app">
+      <div class="container mx-auto px-4 py-6 pb-24">
+        <header class="flex justify-between items-center mb-6">
+          <div class="flex items-center">
+            <i data-feather="moon" class="w-7 h-7 text-purple-700"></i>
+            <h1 class="text-xl font-bold text-gray-800 ml-2">MindfullApp</h1>
+          </div>
+          <div class="flex items-center">
+            <a href="profile.html" class="block">
+              <img src="" alt="Profile" class="js-avatar w-8 h-8 rounded-full object-cover">
+            </a>
+          </div>
+        </header>
+
+        <div class="flex border-b border-gray-200 mb-6">
+          <a href="home.html" class="tab-active py-2 px-3 font-medium text-center">Início</a>
+          <a href="meditations.html" class="py-2 px-3 font-medium text-gray-500 text-center">Meditações</a>
+          <a href="profile.html" class="py-2 px-3 font-medium text-gray-500 text-center">Perfil</a>
+        </div>
+
+        <div class="mb-6" data-aos="fade-up">
+          <h2 class="text-lg font-semibold text-gray-800 mb-1">Bem-vindo de volta, <span id="userName">Usuário</span>!</h2>
+          <p class="text-gray-600">Como você está se sentindo hoje?</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 mb-6">
+          <div class="motivation-card rounded-xl p-5 text-white" data-aos="fade-right">
+            <i data-feather="sun" class="w-7 h-7 mb-3"></i>
+            <h3 class="text-lg font-semibold mb-1">Respire fundo</h3>
+            <p class="opacity-90 text-sm">"A paz começa com um único respiro."</p>
+          </div>
+          <div class="motivation-card rounded-xl p-5 text-white" data-aos="fade-left">
+            <i data-feather="heart" class="w-7 h-7 mb-3"></i>
+            <h3 class="text-lg font-semibold mb-1">Momento presente</h3>
+            <p class="opacity-90 text-sm">"O agora é tudo que existe."</p>
+          </div>
+        </div>
+
+        <div class="mb-6" data-aos="fade-up">
+          <h2 class="text-base font-semibold text-gray-800 mb-3">Suas últimas meditações</h2>
+          <div id="recentList" class="bg-white rounded-xl shadow-md overflow-hidden hidden"></div>
+          <p id="recentEmpty" class="text-gray-500">Você ainda não concluiu nenhuma meditação.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+          <button id="btnStartNow" class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mb-2">
+              <i data-feather="play" class="text-purple-600"></i>
+            </div>
+            <span class="text-sm font-medium">Começar agora</span>
+          </button>
+          <button id="btnChart" class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
+              <i data-feather="bar-chart-2" class="text-green-600"></i>
+            </div>
+            <span class="text-sm font-medium">Gerar gráfico</span>
+          </button>
+        </div>
+
+        <div id="chartContainer" class="bg-white rounded-xl shadow-md p-4 mb-8 hidden">
+          <h2 class="text-base font-semibold text-gray-800 mb-3">Frequência da semana</h2>
+          <canvas id="weekChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.SUPABASE_URL = 'https://nrfilzirqhzzvzgizzgc.supabase.co';
+  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZmlsemlycWh6enZ6Z2l6emdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA3NjYsImV4cCI6MjA3MzgwNjc2Nn0.eAfJXQXGkoS4WmPOjUZFCKaU_PPoDJVgn2T3giqFLqs';
+</script>
+
+<script src="js/integrations/supabaseClient.js"></script>
+<script src="js/integrations/supabaseAuth.js"></script>
+<script src="js/integrations/supabaseMeditations.js"></script>
+<script src="js/app.js"></script>
+  <script>
+    AOS.init(); feather.replace(); requireLogin();
+    bindHeaderUser('.js-avatar', '#userName');
+    const u = getCurrentUser();
+
+    document.getElementById('btnStartNow').addEventListener('click', ()=>{ 
+      window.location.href='meditations.html'; 
+    });
+
+    renderRecents();
+    function renderRecents(){
+      const recentBox = document.getElementById('recentList');
+      const empty = document.getElementById('recentEmpty');
+      const recents = getMeditations(u.email).slice(-3).reverse();
+
+      if(recents.length){
+        empty.classList.add('hidden');
+        recentBox.classList.remove('hidden');
+        recentBox.innerHTML = recents.map(r=>{
+          const icon = r.period==='manhã'?'sun':(r.period==='tarde'?'clock':'moon');
+          return `
+            <div class="p-4 border-b border-gray-100 flex items-center">
+              <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
+                <i data-feather="${icon}" class="text-purple-600"></i>
+              </div>
+              <div>
+                <h3 class="font-medium text-sm">Respiração 4-7-8</h3>
+                <p class="text-xs text-gray-500">${formatDateTime(r.endAt)} • ${Math.round(r.duration/60)} min</p>
+              </div>
+            </div>`;
+        }).join('');
+        feather.replace();
+      }else{
+        recentBox.classList.add('hidden');
+        empty.classList.remove('hidden');
+      }
+
+      if (window.AOS && typeof AOS.refreshHard === 'function') {
+        setTimeout(()=>AOS.refreshHard(), 0);
+      } else if (window.AOS && typeof AOS.refresh === 'function') {
+        setTimeout(()=>AOS.refresh(), 0);
+      }
+    }
+
+    let weekChart = null;
+    document.getElementById('btnChart').addEventListener('click', ()=>{
+      const cont = document.getElementById('chartContainer');
+      cont.classList.remove('hidden');
+      renderWeekChart();
+      if (window.AOS && typeof AOS.refresh === 'function') setTimeout(()=>AOS.refresh(), 0);
+    });
+
+    function renderWeekChart(){
+      const ctx = document.getElementById('weekChart').getContext('2d');
+      const all = getMeditations(u.email);
+      const labels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      const counts = [0,0,0,0,0,0,0];
+
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay()); 
+
+      all.forEach(m=>{
+        const d = new Date(m.endAt);
+        if(d >= startOfWeek){ counts[d.getDay()] += 1; }
+      });
+
+      if (weekChart) weekChart.destroy();
+      weekChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'Meditações', data: counts, backgroundColor: 'rgba(124,58,237,0.7)', borderRadius: 8 }] },
+        options: { plugins:{ legend:{ display:false }}, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } }
+      });
+    }
+  </script>
+<script>
+async function logout(){
+  try { await sbSignOut(); } catch(e) {}
+}
+</script>
+</body>
+</html>
+

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>MindfullApp - Cadastro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/mobile.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="app-notch"></div>
+    <div class="app-scroll bg-login flex items-center justify-center p-4">
+      <div class="w-full max-w-sm">
+        <div class="card-glass rounded-xl overflow-hidden p-8" data-aos="fade-up">
+          <div class="text-center mb-8">
+            <i data-feather="user-plus" class="w-12 h-12 text-white mx-auto"></i>
+            <h1 class="text-3xl font-bold text-white mt-4">Crie sua conta</h1>
+            <p class="text-white/80">Comece sua jornada de meditação</p>
+          </div>
+
+          <form id="registerForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-white mb-1">Nome</label>
+              <input type="text" id="name" required class="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-white mb-1">Email</label>
+              <input type="email" id="email" required class="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-white mb-1">Senha</label>
+              <input type="password" id="password" required minlength="4" class="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-white mb-1">Confirme sua senha</label>
+              <input type="password" id="confirmPassword" required class="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-white mb-1">Foto de perfil (URL)</label>
+              <input type="url" id="avatarUrl" value="https://justpresspause.com/wp-content/uploads/2022/08/Meditation.png" class="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white">
+            </div>
+
+            <button type="submit" class="w-full bg-white text-purple-800 py-2 rounded-lg font-medium hover:bg-opacity-90 transition">Cadastrar</button>
+            <div class="text-center text-white text-sm">
+              <p>Já tem uma conta? <a href="index.html" class="font-medium underline">Faça login</a></p>
+            </div>
+          </form>
+          <p id="registerError" class="text-red-200 text-sm mt-4 hidden"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window.SUPABASE_URL = 'https://nrfilzirqhzzvzgizzgc.supabase.co';
+    window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZmlsemlycWh6enZ6Z2l6emdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA3NjYsImV4cCI6MjA3MzgwNjc2Nn0.eAfJXQXGkoS4WmPOjUZFCKaU_PPoDJVgn2T3giqFLqs';
+  </script>
+
+  <script src="js/integrations/supabaseClient.js"></script>
+  <script src="js/integrations/supabaseAuth.js"></script>
+  <script src="js/integrations/supabaseMeditations.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    AOS.init(); feather.replace(); requireLoggedOut();
+
+    document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name   = (document.getElementById('name')?.value || '').trim();
+      const email  = (document.getElementById('email')?.value || '').trim();
+      const password = (document.getElementById('password')?.value || '');
+      const pass2    = (document.getElementById('confirmPassword')?.value || '');
+      const avatar = (document.getElementById('avatarUrl')?.value || '').trim();
+      const err = document.getElementById('registerError');
+
+      if(password !== pass2){
+        err.textContent = 'As senhas não conferem.';
+        err.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        await sbSignUp({ email, password, name, avatar });
+        window.location.href = 'index.html';
+      } catch (error) {
+        err.textContent = 'Falha ao cadastrar: ' + (error?.message || error);
+        err.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

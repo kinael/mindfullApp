@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>MindfullApp - Perfil</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/mobile.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="app-notch"></div>
+    <div class="app-scroll bg-app">
+      <div class="container mx-auto px-4 py-6 pb-24">
+        <header class="flex justify-between items-center mb-6">
+          <div class="flex items-center">
+            <i data-feather="moon" class="w-7 h-7 text-purple-700"></i>
+            <h1 class="text-xl font-bold text-gray-800 ml-2">MindfullApp</h1>
+          </div>
+          <div class="flex items-center">
+            <img src="" alt="Profile" class="js-avatar w-8 h-8 rounded-full object-cover">
+          </div>
+        </header>
+
+        <div class="flex border-b border-gray-200 mb-6">
+          <a href="home.html" class="py-2 px-3 font-medium text-gray-500 text-center">Início</a>
+          <a href="meditations.html" class="py-2 px-3 font-medium text-gray-500 text-center">Meditações</a>
+          <a href="profile.html" class="tab-active py-2 px-3 font-medium text-center">Perfil</a>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6" data-aos="fade-up">
+          <div class="p-6 flex flex-col items-center">
+            <img src="" alt="Profile" class="js-avatar w-24 h-24 rounded-full object-cover mb-3">
+            <h2 class="text-lg font-semibold" id="profileName">Usuário</h2>
+            <p class="text-gray-500 mb-2" id="memberSince">Membro desde —</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6" data-aos="fade-up">
+          <div class="p-4">
+            <h3 class="font-semibold text-gray-800 mb-3">Alterar foto de perfil</h3>
+            <div class="space-y-3">
+              <input type="url" id="avatarInput" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Cole a URL da imagem (https://...)"/>
+              <div class="flex gap-2">
+                <button id="btnPreviewAvatar" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">Pré-visualizar</button>
+                <button id="btnSaveAvatar" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">Salvar foto</button>
+              </div>
+              <div class="flex items-center gap-3 mt-2">
+                <img id="avatarPreview" src="" alt="Preview" class="w-12 h-12 rounded-full object-cover hidden">
+                <span id="avatarMsg" class="text-sm text-gray-500"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-6">
+          <div class="bg-white rounded-xl p-4 text-center shadow-sm" data-aos="fade-up">
+            <p class="text-gray-500 text-xs">Dias seguidos</p>
+            <p class="text-xl font-bold" id="statStreak">0</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 text-center shadow-sm" data-aos="fade-up" data-aos-delay="100">
+            <p class="text-gray-500 text-xs">Total de horas</p>
+            <p class="text-xl font-bold" id="statHours">0</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 text-center shadow-sm" data-aos="fade-up" data-aos-delay="200">
+            <p class="text-gray-500 text-xs">Sessões</p>
+            <p class="text-xl font-bold" id="statSessions">0</p>
+          </div>
+        </div>
+
+        <div class="mb-6" data-aos="fade-up">
+          <h2 class="text-base font-semibold text-gray-800 mb-3">Conquistas</h2>
+          <div class="grid grid-cols-4 gap-4" id="achievements"></div>
+        </div>
+
+        <div id="logoutCard" class="bg-white rounded-xl shadow-md overflow-hidden" style="position:relative; z-index:50;">
+          <button id="btnLogout" class="w-full p-4 flex items-center text-left hover:bg-gray-50">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+              <i data-feather="log-out" class="text-red-600"></i>
+            </div>
+            <div class="flex-grow">
+              <h3 class="font-medium">Sair</h3>
+            </div>
+            <i data-feather="chevron-right" class="text-gray-400"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window.SUPABASE_URL = 'https://nrfilzirqhzzvzgizzgc.supabase.co';
+    window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZmlsemlycWh6enZ6Z2l6emdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA3NjYsImV4cCI6MjA3MzgwNjc2Nn0.eAfJXQXGkoS4WmPOjUZFCKaU_PPoDJVgn2T3giqFLqs';
+  </script>
+
+  <script src="js/integrations/supabaseClient.js"></script>
+  <script src="js/integrations/supabaseAuth.js"></script>
+  <script src="js/integrations/supabaseMeditations.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    AOS.init(); feather.replace(); requireLogin();
+    bindHeaderUser('.js-avatar', '#profileName');
+    const u = getCurrentUser();
+    document.getElementById('memberSince').textContent = 'Membro desde ' + formatMemberSince(u.createdAt);
+
+    const stats = getStats(u.email);
+    document.getElementById('statStreak').textContent   = stats.streakDays;
+    document.getElementById('statHours').textContent    = (stats.totalSeconds/3600).toFixed(1);
+    document.getElementById('statSessions').textContent = stats.sessions;
+    renderAchievements('achievements', stats);
+
+    const input   = document.getElementById('avatarInput');
+    const preview = document.getElementById('avatarPreview');
+    const msg     = document.getElementById('avatarMsg');
+    input.value = u.avatar || 'https://justpresspause.com/wp-content/uploads/2022/08/Meditation.png';
+
+    document.getElementById('btnPreviewAvatar').addEventListener('click', ()=>{
+      const url = (input.value || '').trim();
+      if(!url){ msg.textContent = 'Informe uma URL válida.'; return; }
+      preview.src = url; preview.classList.remove('hidden');
+      msg.textContent = 'Pré-visualização carregada.';
+    });
+
+    document.getElementById('btnSaveAvatar').addEventListener('click', ()=>{
+      const url = (input.value || '').trim();
+      if(!/^https?:\/\//i.test(url)){ msg.textContent = 'Informe uma URL que comece com http(s)://'; return; }
+      const updated = setAvatarForCurrentUser(url);
+      if(updated){
+        document.querySelectorAll('.js-avatar').forEach(el=> el.src = updated.avatar);
+        msg.textContent = 'Foto atualizada com sucesso!';
+      }else{
+        msg.textContent = 'Não foi possível atualizar. Tente novamente.';
+      }
+    });
+
+    document.getElementById('btnLogout')?.addEventListener('click', async (ev) => {
+      ev.preventDefault();
+      try {
+        await sbSignOut();
+      } catch(e) {
+        console.warn('Erro ao sair:', e);
+      } finally {
+        localStorage.removeItem('mf_session');
+        window.location.replace('index.html');
+      }
+    });
+  </script>
+</body>
+</html>

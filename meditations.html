@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>MindfullApp - Meditações</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/mobile.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+<script>
+(async () => {
+  try {
+    const s = await sbGetSession();
+    if (!s) window.location.href = 'index.html';
+  } catch(e){ }
+})();
+</script>
+  <div class="app-shell">
+    <div class="app-notch"></div>
+    <div class="app-scroll bg-app">
+      <div class="container mx-auto px-4 py-6">
+        <header class="flex justify-between items-center mb-6">
+          <div class="flex items-center">
+            <i data-feather="moon" class="w-7 h-7 text-purple-700"></i>
+            <h1 class="text-xl font-bold text-gray-800 ml-2">MindfullApp</h1>
+          </div>
+          <div class="flex items-center">
+            <a href="profile.html" class="block">
+              <img src="" alt="Profile" class="js-avatar w-8 h-8 rounded-full object-cover">
+            </a>
+          </div>
+        </header>
+
+        <div class="flex border-b border-gray-200 mb-6">
+          <a href="home.html" class="py-2 px-3 font-medium text-gray-500 text-center">Início</a>
+          <a href="meditations.html" class="tab-active py-2 px-3 font-medium text-center">Meditações</a>
+          <a href="profile.html" class="py-2 px-3 font-medium text-gray-500 text-center">Perfil</a>
+        </div>
+
+        <section class="bg-white rounded-xl shadow-md p-5 mb-6" data-aos="fade-up">
+          <div class="flex flex-col items-center">
+            <div id="ball" class="breath-ball"></div>
+            <p id="phase" class="mt-3 text-base font-medium text-gray-700 breath-step">Pronto?</p>
+            <p class="text-xs text-gray-500 mt-1">Técnica 4–7–8: Inspire 4s • Segure 7s • Expire 8s</p>
+
+            <div class="flex items-center gap-2 mt-5">
+              <button id="btnStart"  class="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition">Começar</button>
+              <button id="btnPause"  class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition hidden">Pausar</button>
+              <button id="btnResume" class="bg-gray-800 text-white px-4 py-2 rounded-lg font-medium hover:bg-black transition hidden">Retomar</button>
+              <button id="btnFinish" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition hidden">Concluir</button>
+            </div>
+
+            <p id="elapsed" class="text-xs text-gray-500 mt-3">00:00</p>
+          </div>
+        </section>
+
+        <section class="mb-6" data-aos="fade-up" data-aos-delay="100">
+          <h2 class="text-base font-semibold text-gray-800 mb-3">Histórico de meditações</h2>
+          <div id="history" class="space-y-2"></div>
+          <p id="historyEmpty" class="text-gray-500">Sem registros ainda. Conclua uma sessão para aparecer aqui.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.SUPABASE_URL = 'https://nrfilzirqhzzvzgizzgc.supabase.co';
+  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZmlsemlycWh6enZ6Z2l6emdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA3NjYsImV4cCI6MjA3MzgwNjc2Nn0.eAfJXQXGkoS4WmPOjUZFCKaU_PPoDJVgn2T3giqFLqs';
+</script>
+
+<script src="js/integrations/supabaseClient.js"></script>
+<script src="js/integrations/supabaseAuth.js"></script>
+<script src="js/integrations/supabaseMeditations.js"></script>
+<script src="js/app.js"></script>
+  <script>
+    AOS.init(); feather.replace(); requireLogin(); bindHeaderUser('.js-avatar');
+    const user = getCurrentUser();
+
+    let paused=false, phase='idle', phaseTimer=null, elapsedTimer=null, startedAt=null;
+
+    const ball  = document.getElementById('ball');
+    const phaseLbl = document.getElementById('phase');
+    const elapsedLbl = document.getElementById('elapsed');
+    const btnStart = document.getElementById('btnStart');
+    const btnPause = document.getElementById('btnPause');
+    const btnResume= document.getElementById('btnResume');
+    const btnFinish= document.getElementById('btnFinish');
+
+    function setButtons(state){
+      if(state==='idle'){ btnStart.classList.remove('hidden'); btnPause.classList.add('hidden'); btnResume.classList.add('hidden'); btnFinish.classList.add('hidden'); }
+      if(state==='running'){ btnStart.classList.add('hidden'); btnPause.classList.remove('hidden'); btnResume.classList.add('hidden'); btnFinish.classList.remove('hidden'); }
+      if(state==='paused'){ btnStart.classList.add('hidden'); btnPause.classList.add('hidden'); btnResume.classList.remove('hidden'); btnFinish.classList.remove('hidden'); }
+    }
+    setButtons('idle');
+
+    function tickElapsed(){
+      elapsedTimer = setInterval(()=>{
+        if(startedAt && !paused){
+          const sec = Math.floor((Date.now()-startedAt)/1000);
+          elapsedLbl.textContent = toMMSS(sec);
+        }
+      }, 250);
+    }
+
+    function animateBall(scale, ms){ ball.style.transitionDuration = (ms/1000)+'s'; ball.style.transform = `scale(${scale})`; }
+
+    function countdown(seconds, onTick, onDone){
+      let t=seconds;
+      onTick(t);
+      phaseTimer=setInterval(()=>{
+        if(paused) return;
+        t--;
+        if(t>0) onTick(t);
+        else { clearInterval(phaseTimer); onDone(); }
+      },1000);
+    }
+
+    function nextPhase(){
+      if(paused) return;
+      clearInterval(phaseTimer);
+      if(phase==='idle' || phase==='exhale'){
+        phase='inhale'; phaseLbl.textContent='Inspire (4)'; animateBall(1.25, 4000);
+        countdown(4, (t)=>phaseLbl.textContent=`Inspire (${t})`, ()=>nextPhase());
+      }else if(phase==='inhale'){
+        phase='hold'; phaseLbl.textContent='Segure (7)'; animateBall(1.25, 7000);
+        countdown(7, (t)=>phaseLbl.textContent=`Segure (${t})`, ()=>nextPhase());
+      }else if(phase==='hold'){
+        phase='exhale'; phaseLbl.textContent='Expire (8)'; animateBall(1.0, 8000);
+        countdown(8, (t)=>phaseLbl.textContent=`Expire (${t})`, ()=>nextPhase());
+      }
+    }
+
+    btnStart.addEventListener('click', ()=>{
+      if(startedAt) return;
+      startedAt = Date.now();
+      paused=false; phase='idle'; setButtons('running');
+      tickElapsed(); nextPhase();
+    });
+
+    btnPause.addEventListener('click', ()=>{ paused = true; setButtons('paused'); phaseLbl.textContent='Pausado'; ball.style.transitionDuration='0.2s'; });
+    btnResume.addEventListener('click', ()=>{ paused = false; setButtons('running'); nextPhase(); });
+
+    btnFinish.addEventListener('click', ()=>{
+      const durationSec = startedAt ? Math.floor((Date.now()-startedAt)/1000) : 0;
+      clearInterval(phaseTimer); clearInterval(elapsedTimer);
+      phaseTimer=null; elapsedTimer=null; startedAt=null;
+      setButtons('idle'); phase='idle'; phaseLbl.textContent='Pronto?'; ball.style.transform='scale(1)'; elapsedLbl.textContent='00:00';
+      if(durationSec>0){ addMeditation(user.email, durationSec); renderHistory(); }
+    });
+
+    function renderHistory(){
+      const list = getMeditations(user.email).slice().reverse();
+      const box = document.getElementById('history');
+      const empty = document.getElementById('historyEmpty');
+      if(!list.length){ box.innerHTML=''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+      box.innerHTML = list.map(item=> `
+        <div class="bg-white rounded-lg p-4 shadow flex items-center justify-between">
+          <div>
+            <p class="font-medium text-sm">Respiração 4-7-8 • ${Math.round(item.duration/60)} min</p>
+            <p class="text-xs text-gray-500">${formatDateTime(item.endAt)} • ${item.period}</p>
+          </div>
+          <button class="text-red-600 text-sm hover:underline" data-del="${item.id}">Apagar</button>
+        </div>
+      `).join('');
+
+      box.querySelectorAll('[data-del]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          deleteMeditation(user.email, btn.getAttribute('data-del'));
+          renderHistory();
+        });
+      });
+    }
+    renderHistory();
+  </script>
+<script>
+async function logout(){
+  try { await sbSignOut(); } catch(e) {}
+}
+</script>
+</body>
+</html>
